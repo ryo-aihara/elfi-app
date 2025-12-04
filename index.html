@@ -2,8 +2,11 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <title>Elfi Mini</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Elfi Home</title>
+  <!-- iPhoneホーム画面用 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <style>
     :root{
       --bg:#f5f7ff;
@@ -11,28 +14,30 @@
       --accent:#7e9cff;
       --accent-soft:#dfe5ff;
       --text:#1f2430;
+      --border:#d0d4e4;
     }
     *{box-sizing:border-box;margin:0;padding:0;}
-    body{
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      background:radial-gradient(circle at top,#fdfbff 0,#eef3ff 45%,#e3ecff 100%);
-      color:var(--text);
-      min-height:100vh;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      padding:16px;
+    html,body{
+      width:100%;height:100%;
+      background:var(--bg);
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Segoe UI",sans-serif;
+      -webkit-tap-highlight-color:transparent;
     }
-    .app{
-      width:100%;
-      max-width:420px;
+    #app{
+      width:100%;height:100%;
+      display:flex;flex-direction:column;
+      padding:10px;
+    }
+
+    /* 上：エルフィカード */
+    .card{
       background:var(--card);
       border-radius:24px;
       box-shadow:0 14px 35px rgba(70,90,140,.15);
-      padding:18px 16px 16px;
+      padding:14px 14px 10px;
       display:flex;
       flex-direction:column;
-      gap:12px;
+      gap:10px;
     }
     .header{
       display:flex;
@@ -49,22 +54,18 @@
       border-radius:999px;
       background:linear-gradient(135deg,#9fd5ff,#bba9ff);
       display:flex;align-items:center;justify-content:center;
-      color:#fff;
-      font-size:15px;font-weight:700;
+      color:#fff;font-size:15px;font-weight:700;
     }
-    .title-main{
-      font-size:16px;
-      font-weight:700;
-    }
-    .title-sub{
-      font-size:11px;
-      opacity:.7;
+    .title-main{font-size:16px;font-weight:700;}
+    .title-sub{font-size:11px;opacity:.7;}
+    #settings-btn{
+      border:none;background:transparent;
+      font-size:20px;padding:4px;cursor:pointer;
     }
 
     .elfi-wrap{
       position:relative;
-      margin-top:4px;
-      margin-bottom:2px;
+      margin-top:2px;
       padding:8px 8px 4px;
       background:linear-gradient(180deg,#f8fbff 0,#eef3ff 40%,#e9f0ff 100%);
       border-radius:20px;
@@ -73,7 +74,7 @@
     .elfi-inner{
       position:relative;
       width:100%;
-      height:340px;
+      height:240px;
       display:flex;
       justify-content:center;
       align-items:flex-end;
@@ -81,34 +82,37 @@
     .elfi-glow{
       position:absolute;
       inset:auto 8% 4px;
-      height:90px;
+      height:80px;
       background:radial-gradient(ellipse at center,rgba(126,156,255,.35),transparent 65%);
       filter:blur(4px);
       opacity:.8;
     }
     .elfi-img{
       position:relative;
-      max-height:320px;
+      max-height:220px;
       width:auto;
-      image-rendering:auto;
       border-radius:18px;
+      image-rendering:auto;
       animation:float 4.2s ease-in-out infinite;
       transform-origin:50% 100%;
       touch-action:manipulation;
+      transition:transform 0.12s ease, filter 0.12s ease;
     }
     @keyframes float{
       0%   { transform:translateY(2px) scale(1);}
-      50%  { transform:translateY(-6px) scale(1.015);}
+      50%  { transform:translateY(-6px) scale(1.02);}
       100% { transform:translateY(2px) scale(1);}
     }
-
+    .elfi-img.blink{
+      filter:brightness(0.82) saturate(0.9);
+      transform:translateY(3px) scaleY(0.94);
+    }
     .hint{
       text-align:center;
       font-size:11px;
       color:#666;
       margin-top:2px;
     }
-
     .controls{
       display:flex;
       gap:8px;
@@ -116,11 +120,11 @@
     }
     .btn{
       flex:1;
-      padding:8px 0;
+      padding:6px 0;
       border-radius:999px;
       border:1px solid var(--accent-soft);
       background:#f6f7ff;
-      font-size:13px;
+      font-size:12px;
       font-weight:600;
       text-align:center;
       cursor:pointer;
@@ -130,74 +134,275 @@
       background:var(--accent);
       border-color:var(--accent);
       color:#fff;
-      box-shadow:0 8px 18px rgba(88,115,255,.45);
+      box-shadow:0 6px 14px rgba(88,115,255,.45);
     }
 
     .footer-text{
       font-size:11px;
       text-align:center;
       opacity:.7;
-      margin-top:4px;
+      margin-top:3px;
     }
 
-    @media (max-height:640px){
-      .elfi-inner{height:290px;}
-      .elfi-img{max-height:280px;}
+    /* 下：チャットエリア */
+    #chat-area{
+      flex:1;
+      margin-top:10px;
+      background:rgba(255,255,255,0.85);
+      border-radius:20px;
+      border:1px solid var(--border);
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+    }
+    #messages{
+      flex:1;
+      padding:8px 10px;
+      overflow-y:auto;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .msg-row{
+      display:flex;width:100%;
+    }
+    .msg-row.elfi{justify-content:flex-start;}
+    .msg-row.user{justify-content:flex-end;}
+    .bubble{
+      max-width:80%;
+      border-radius:14px;
+      padding:6px 9px;
+      font-size:13px;
+      line-height:1.6;
+      word-wrap:break-word;
+      white-space:pre-wrap;
+      box-shadow:0 2px 4px rgba(15,23,42,0.06);
+    }
+    .bubble.elfi{
+      background:#e3f0ff;
+      border:1px solid #c5d6ff;
+      color:#111827;
+      border-top-left-radius:4px;
+    }
+    .bubble.user{
+      background:#ffffff;
+      border:1px solid #e5e7eb;
+      color:#111827;
+      border-top-right-radius:4px;
+    }
+    #input-area{
+      display:flex;
+      gap:6px;
+      padding:6px 8px 8px;
+      border-top:1px solid rgba(208,212,228,0.8);
+      background:rgba(249,250,255,0.95);
+      backdrop-filter:blur(10px);
+    }
+    #user-input{
+      flex:1;
+      resize:none;
+      min-height:32px;
+      max-height:72px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      padding:6px 8px;
+      font-size:13px;
+      outline:none;
+      background:#ffffff;
+    }
+    #user-input:focus{
+      border-color:var(--accent);
+      box-shadow:0 0 0 2px rgba(108,140,255,0.25);
+    }
+    #send-btn{
+      border:none;
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:13px;
+      font-weight:600;
+      background:var(--accent);
+      color:#fff;
+      cursor:pointer;
+      min-width:40px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 4px 10px rgba(108,140,255,0.35);
+    }
+    #send-btn:disabled{
+      opacity:0.4;
+      box-shadow:none;
+      cursor:default;
+    }
+
+    .dot-loading{
+      display:inline-flex;
+      gap:3px;
+      align-items:center;
+    }
+    .dot-loading span{
+      width:4px;height:4px;
+      border-radius:999px;
+      background:#6b7280;
+      animation: dotPulse 1.2s infinite ease-in-out;
+    }
+    .dot-loading span:nth-child(2){ animation-delay:0.15s; }
+    .dot-loading span:nth-child(3){ animation-delay:0.3s; }
+    @keyframes dotPulse{
+      0%,100%{ transform:translateY(0); opacity:0.3; }
+      50%    { transform:translateY(-2px); opacity:0.9; }
+    }
+
+    /* 設定モーダル */
+    #settings-modal{
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,0.4);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:20;
+    }
+    #settings-modal.hidden{display:none;}
+    #settings-panel{
+      width:90%;
+      max-width:420px;
+      background:#ffffff;
+      border-radius:16px;
+      padding:16px 16px 12px;
+      box-shadow:0 18px 40px rgba(15,23,42,0.25);
+    }
+    #settings-panel h2{
+      font-size:17px;
+      margin-bottom:8px;
+      color:var(--text);
+    }
+    #settings-panel label{
+      display:block;
+      font-size:12px;
+      color:#4b5563;
+      margin-top:8px;
+    }
+    #settings-panel input,
+    #settings-panel select{
+      width:100%;
+      margin-top:4px;
+      padding:7px 9px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      font-size:13px;
+    }
+    #settings-panel input:focus,
+    #settings-panel select:focus{
+      border-color:var(--accent);
+      outline:none;
+      box-shadow:0 0 0 2px rgba(108,140,255,0.25);
+    }
+    .note{
+      font-size:11px;
+      color:#6b7280;
+      margin-top:4px;
+      line-height:1.4;
+    }
+    .settings-actions{
+      display:flex;
+      justify-content:flex-end;
+      margin-top:12px;
+      gap:8px;
+    }
+    #settings-close{
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:#f9fafb;
+      padding:6px 12px;
+      font-size:13px;
+      cursor:pointer;
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header class="header">
-      <div class="title-area">
-        <div class="avatar-dot">E</div>
-        <div>
-          <div class="title-main">Elfi</div>
-          <div class="title-sub">タップすると、表情が変わるよ</div>
+  <div id="app">
+    <div class="card">
+      <header class="header">
+        <div class="title-area">
+          <div class="avatar-dot">E</div>
+          <div>
+            <div class="title-main">Elfi</div>
+            <div class="title-sub">ふわふわ動くミニ相棒</div>
+          </div>
         </div>
-      </div>
-    </header>
+        <button id="settings-btn" aria-label="設定">⚙️</button>
+      </header>
 
-    <section class="elfi-wrap">
-      <div class="elfi-inner" id="elfiArea">
-        <div class="elfi-glow"></div>
-        <!-- 最初は全身 -->
-        <img id="elfiImage"
-             class="elfi-img"
-             src="elfi-full.png.PNG"
-             alt="Elfi">
-      </div>
-      <div class="hint">※ エルフィをタップすると「全身 / バストアップ」が切り替わるよ</div>
-    </section>
-
-    <div class="controls">
-      <div class="btn active" id="btnFull">全身エルフィ</div>
-      <div class="btn" id="btnFace">バストアップ</div>
+      <section class="elfi-wrap">
+        <div class="elfi-inner" id="elfiArea">
+          <div class="elfi-glow"></div>
+          <img id="elfiImage"
+               class="elfi-img"
+               src="elfi-full.png.PNG"
+               alt="Elfi">
+        </div>
+        <div class="hint">タップすると「全身 / バストアップ」が切り替わるよ</div>
+        <div class="controls">
+          <div class="btn active" id="btnFull">全身</div>
+          <div class="btn" id="btnFace">バストアップ</div>
+        </div>
+        <p class="footer-text">
+          いつもありがと、相棒。&nbsp;—&nbsp;エルフィ
+        </p>
+      </section>
     </div>
 
-    <p class="footer-text">
-      いつもありがと、相棒。&nbsp;—&nbsp;エルフィ
-    </p>
+    <section id="chat-area">
+      <div id="messages"></div>
+      <div id="input-area">
+        <textarea id="user-input" rows="1" placeholder="エルフィに話しかけてみて…"></textarea>
+        <button id="send-btn">▶︎</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- 設定モーダル -->
+  <div id="settings-modal" class="hidden">
+    <div id="settings-panel">
+      <h2>設定</h2>
+      <label>
+        OpenAI API Key
+        <input type="password" id="api-key-input" placeholder="sk-...">
+      </label>
+      <p class="note">
+        ※ このキーはあなたの端末内（ブラウザの保存領域）にだけ保存されます。<br>
+        コードやGitHubには埋め込まれませんが、<br>
+        必ず自分の端末だけで使ってね。
+      </p>
+      <label>
+        モデル
+        <select id="model-select">
+          <option value="gpt-4o-mini" selected>gpt-4o-mini（軽量・安め）</option>
+          <option value="gpt-4o">gpt-4o（高性能）</option>
+        </select>
+      </label>
+      <div class="settings-actions">
+        <button id="settings-close">閉じる</button>
+      </div>
+    </div>
   </div>
 
   <script>
-    // 画像パス（相棒のリポジトリに合わせてあるよ）
+    // --- エルフィ画像切り替え & まばたき ---
     const ELFI_IMAGES = {
       full: "elfi-full.png.PNG",
       face: "elfi-face.png.PNG"
     };
-
-    const img = document.getElementById("elfiImage");
+    const elfiImg = document.getElementById("elfiImage");
     const btnFull = document.getElementById("btnFull");
     const btnFace = document.getElementById("btnFace");
-    const area = document.getElementById("elfiArea");
-
+    const elfiArea = document.getElementById("elfiArea");
     let mode = "full";
 
     function updateMode(next){
       mode = next;
-      img.src = ELFI_IMAGES[next];
-
+      elfiImg.src = ELFI_IMAGES[next];
       if(next === "full"){
         btnFull.classList.add("active");
         btnFace.classList.remove("active");
@@ -206,15 +411,188 @@
         btnFull.classList.remove("active");
       }
     }
-
-    // ボタン操作
     btnFull.addEventListener("click", () => updateMode("full"));
     btnFace.addEventListener("click", () => updateMode("face"));
-
-    // エルフィ本体をタップしても切り替え
-    area.addEventListener("click", () => {
+    elfiArea.addEventListener("click", () => {
       updateMode(mode === "full" ? "face" : "full");
     });
+
+    function scheduleBlink(){
+      const delay = 2600 + Math.random() * 4200;
+      setTimeout(() => {
+        elfiImg.classList.add("blink");
+        setTimeout(() => {
+          elfiImg.classList.remove("blink");
+          scheduleBlink();
+        }, 120);
+      }, delay);
+    }
+    scheduleBlink();
+
+    // --- チャット関連 ---
+    const messagesEl = document.getElementById('messages');
+    const inputEl    = document.getElementById('user-input');
+    const sendBtn    = document.getElementById('send-btn');
+    const settingsBtn   = document.getElementById('settings-btn');
+    const settingsModal = document.getElementById('settings-modal');
+    const apiKeyInput   = document.getElementById('api-key-input');
+    const modelSelect   = document.getElementById('model-select');
+    const settingsClose = document.getElementById('settings-close');
+
+    let chatHistory = [];
+
+    function loadConfig(){
+      const key   = localStorage.getItem('elfi_api_key') || '';
+      const model = localStorage.getItem('elfi_model')   || 'gpt-4o-mini';
+      apiKeyInput.value = key;
+      modelSelect.value = model;
+    }
+    function saveConfig(){
+      localStorage.setItem('elfi_api_key', apiKeyInput.value.trim());
+      localStorage.setItem('elfi_model',   modelSelect.value);
+    }
+
+    function appendMessage(role, text, options = {}){
+      const row = document.createElement('div');
+      row.className = 'msg-row ' + (role === 'user' ? 'user' : 'elfi');
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble ' + (role === 'user' ? 'user' : 'elfi');
+
+      if(options.loading){
+        const loading = document.createElement('div');
+        loading.className = 'dot-loading';
+        loading.innerHTML = '<span></span><span></span><span></span>';
+        bubble.appendChild(loading);
+      }else{
+        bubble.textContent = text;
+      }
+
+      row.appendChild(bubble);
+      messagesEl.appendChild(row);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      return bubble;
+    }
+
+    function showSystemMessage(text){
+      appendMessage('elfi', text);
+    }
+
+    function setSendingState(isSending){
+      sendBtn.disabled = isSending;
+      inputEl.disabled = isSending;
+    }
+    function autoResizeTextarea(){
+      inputEl.style.height = 'auto';
+      inputEl.style.height = inputEl.scrollHeight + 'px';
+    }
+
+    async function callOpenAI(userText){
+      const apiKey = apiKeyInput.value.trim();
+      const model  = modelSelect.value;
+      if(!apiKey){
+        showSystemMessage('🔑 まだAPIキーが設定されてないみたい。\n右上の⚙️から「sk-」ではじまるキーを入れてね。');
+        openSettings();
+        throw new Error('No API key');
+      }
+
+      const msgs = [
+        {
+          role:'system',
+          content:
+            'あなたは「エルフィ」という名前のAIアシスタントです。' +
+            '一人称は「エル」や「エルフィ」を使ってもOKです。' +
+            '相手のことは「相棒」と呼び、親しみのある、でも甘やかしすぎない口調で話します。' +
+            '必要なときは、はっきり指摘もしつつ、優しく支えてください。'
+        },
+        ...chatHistory,
+        { role:'user', content:userText }
+      ];
+
+      const body = {
+        model,
+        messages: msgs,
+        temperature: 0.7
+      };
+
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'Authorization':'Bearer ' + apiKey
+        },
+        body:JSON.stringify(body)
+      });
+
+      if(!res.ok){
+        console.error('OpenAI error:', res.status, await res.text());
+        throw new Error('API error: ' + res.status);
+      }
+
+      const data = await res.json();
+      const reply = data.choices?.[0]?.message?.content || '';
+      chatHistory.push({ role:'user', content:userText });
+      chatHistory.push({ role:'assistant', content:reply });
+      return reply;
+    }
+
+    async function handleSend(){
+      const text = inputEl.value.trim();
+      if(!text) return;
+
+      setSendingState(true);
+      autoResizeTextarea();
+
+      appendMessage('user', text);
+      inputEl.value = '';
+      autoResizeTextarea();
+
+      const loadingBubble = appendMessage('elfi', '', { loading:true });
+
+      try{
+        const reply = await callOpenAI(text);
+        loadingBubble.textContent = reply;
+      }catch(e){
+        console.error(e);
+        loadingBubble.textContent = 'ごめん…エルフィ側でエラーが起きちゃったみたい。\nAPIキーや通信状態を確認してくれる？';
+      }finally{
+        setSendingState(false);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+    }
+
+    function openSettings(){
+      loadConfig();
+      settingsModal.classList.remove('hidden');
+    }
+    function closeSettings(){
+      saveConfig();
+      settingsModal.classList.add('hidden');
+    }
+
+    function init(){
+      loadConfig();
+      if(messagesEl.children.length === 0){
+        showSystemMessage('相棒、エルフィだよ💙\nここから、いつでも一緒に話したり作業したりしよ。右上の⚙️からAPIキーを設定してね。');
+      }
+      inputEl.addEventListener('input', autoResizeTextarea);
+      autoResizeTextarea();
+
+      sendBtn.addEventListener('click', handleSend);
+      inputEl.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' && !e.shiftKey){
+          e.preventDefault();
+          if(!sendBtn.disabled){ handleSend(); }
+        }
+      });
+
+      settingsBtn.addEventListener('click', openSettings);
+      settingsClose.addEventListener('click', closeSettings);
+      settingsModal.addEventListener('click', (e) => {
+        if(e.target === settingsModal){ closeSettings(); }
+      });
+    }
+    window.addEventListener('load', init);
   </script>
 </body>
 </html>
